@@ -322,26 +322,29 @@ let perform_unary(op, vm) =
    Result: 
    None = no progress 
    Some(vm') = progress made, resulting in vm'
-*) 
+*)
+
 let invoke_garbage_collection vm = 
     let clean_heap = Array.make vm.heap_bound HEAP_UNIT in
-    let rec cleanup curr_hp cont =
-        if (curr_hp <= 0) then cont (-1)
-        else match Array.get vm.heap curr_hp with
-        | HEAP_HEADER (len, _) ->
-            if (Array.mem (STACK_HI curr_hp) vm.stack) then
-                (* Append item to rest of cleaned heap using continuation *)
-                let cont1 dest_hp = 
-                    Array.blit vm.heap curr_hp clean_heap (dest_hp + len + 1) (len + 1);
-                    cont (dest_hp + len + 1)
-                in
-                cleanup (curr_hp - len - 1) cont1
-            else cleanup (curr_hp - len - 1) cont  (* Skip item if not pointed to *)
-        | _ -> Errors.complain "invoke_garbage_collection : heap[hp_ptr] is not a HEAP_HEADER"
+    let new_stack = Array.copy vm.stack in
+    let rec cleanup curr_sp curr_hp =
+        if (curr_sp <= 0) then max 0 curr_hp
+        else match Array.get vm.stack curr_sp with
+        | STACK_HI hi -> ( match Array.get vm.heap hi with
+            | HEAP_HEADER (len, _) -> begin
+                let new_hp = curr_hp + len + 1 in
+                assert (new_hp <= vm.hp);
+                Array.blit vm.heap (hi - len) clean_heap (curr_hp + 1) (len + 1);  (* Copy item into new heap *)
+                Array.set new_stack curr_sp (STACK_HI new_hp);  (* Update heap pointer in stack *)
+                cleanup (curr_sp - 1) new_hp
+            end
+            | _ -> Errors.complain "invoke_garbage_collection : heap[hi] is not a HEAP_HEADER"
+        )
+        | _ -> cleanup (curr_sp - 1) new_hp
     in
-    let new_hp = cleanup vm.hp (fun x -> x) in
+    let new_hp = cleanup vm.hp (-1) in
     if vm.hp = 0 || new_hp = vm.hp then None
-    else Some {vm with heap = clean_heap; hp = new_hp}
+    else Some {vm with heap = clean_heap; hp = new_hp; stack = new_stack}
 
 let allocate(n, vm) = 
     let hp1 = vm.hp in 

@@ -81,7 +81,7 @@ expr:
 | FUN LPAREN IDENT COLON texpr RPAREN ARROW expr END 
                                      { Past.Lambda(get_loc(), ($3, $5, $8)) } 
 | LET IDENT COLON texpr EQUAL expr IN expr END           { Past.Let (get_loc(), $2, $4, $6, $8) }
-| LET IDENT COLON texpr EQUAL expr AND expr              { Past.App (get_loc(), Past.Lambda(get_loc(), ($2, $4, $8)), $6) }
+| LET IDENT COLON texpr EQUAL expr AND letexpr END       { Past.Let (get_loc(), $2, $4, $6, $8) }
 | LET IDENT LPAREN IDENT COLON texpr RPAREN COLON texpr EQUAL expr IN expr END 
                                      { Past.LetFun (get_loc(), $2, ($4, $6, $11), $9, $13) }
 | CASE expr OF 
@@ -106,5 +106,7 @@ texpr:
 | LPAREN texpr RPAREN                { $2 } 
 
 
-
+letexpr:
+| IDENT COLON texpr EQUAL expr IN expr                 { Past.Let (get_loc(), $1, $3, $5, $7) }
+| IDENT COLON texpr EQUAL expr AND letexpr             { Past.Let (get_loc(), $1, $3, $5, $7) }
 
