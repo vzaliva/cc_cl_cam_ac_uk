@@ -64,6 +64,7 @@ rule token = parse
   | int_reg_exp { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | ident_reg_exp { IDENT (Lexing.lexeme lexbuf) }
   | "(*" { comment lexbuf; token lexbuf }
+  | "//" {line_comment lexbuf; token lexbuf}
   | newline { next_line lexbuf; token lexbuf } 
   | eof { EOF }
   | _ { Errors.complain ("Lexer : Illegal character " ^ (Char.escaped(Lexing.lexeme_char lexbuf 0)))
@@ -75,4 +76,7 @@ and comment = parse
   | "(*" {comment lexbuf; comment lexbuf }
   | _ { comment lexbuf } 
       
-
+and line_comment = parse
+  | newline { () }
+  | eof { () }
+  | _ { line_comment lexbuf}
