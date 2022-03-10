@@ -1,3 +1,3 @@
 
 
-if ? = 0 then 17 else 21 end 
+if ? = 0 then 0x1a else 0o25 end 

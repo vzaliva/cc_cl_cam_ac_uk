@@ -14,7 +14,11 @@ let next_line lexbuf =
 
 let newline = ('\010' | "\013\010" )
 let ident_reg_exp = ['A'-'Z' 'a'-'z']+ ['0'-'9' 'A'-'Z' 'a'-'z' '_' '\'']* 
-let int_reg_exp = ['0'-'9']+
+let int_dec_reg_exp = ['0'-'9']+
+let int_hex_reg_exp = ("0x" | "0X")(['A'-'F' '0'-'9']+ | ['a' - 'f' '0'-'9']+)
+let int_oct_reg_exp = ("0o" | "0O")(['0' - '7']+)
+
+let int_reg_exp = (int_dec_reg_exp | int_hex_reg_exp | int_oct_reg_exp)
 
 rule token = parse
   | [' ' '\t'] { token lexbuf }
