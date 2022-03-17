@@ -195,7 +195,7 @@ let string_of_heap vm =
             if vm.hp <= k 
 	    then "" 
 	    else (string_of_int k) ^ " -> " ^ (string_of_heap_item (vm.heap.(k))) ^ "\n" ^ (aux (k+1)) 
-    in "\nhere is the heap Heap = \n" ^ (aux 0) 
+    in "\nHeap = \n" ^ (aux 0) 
 
 
 let string_of_state vm = 
@@ -723,3 +723,4 @@ let compile e =
     in result 
 
 let interpret e = run (compile e)
+
