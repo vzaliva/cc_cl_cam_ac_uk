@@ -705,7 +705,6 @@ and comp_lambda vmap (f_opt, x, e) =
      (def @ defs, (List.rev fetch_fvars) @ [MK_CLOSURE((f, None), List.length fvars)])
 
 let rec optimise code =
-  print_endline "optimising";
   match code with
   | [] -> []
   | PUSH x :: POP :: tail -> optimise tail
