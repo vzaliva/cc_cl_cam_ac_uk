@@ -195,7 +195,7 @@ let string_of_heap vm =
             if vm.hp <= k 
 	    then "" 
 	    else (string_of_int k) ^ " -> " ^ (string_of_heap_item (vm.heap.(k))) ^ "\n" ^ (aux (k+1)) 
-    in "\nHeap = \n" ^ (aux 0) 
+    in "\nhere is the heap Heap = \n" ^ (aux 0) 
 
 
 let string_of_state vm = 
@@ -704,9 +704,17 @@ and comp_lambda vmap (f_opt, x, e) =
     let def = [LABEL f] @ c @ [RETURN] in 
      (def @ defs, (List.rev fetch_fvars) @ [MK_CLOSURE((f, None), List.length fvars)])
 
+let rec optimise code =
+  print_endline "optimising";
+  match code with
+  | [] -> []
+  | PUSH x :: POP :: tail -> optimise tail
+  | x :: y :: tail -> x :: y :: optimise tail
+  | x :: tail -> optimise tail
+
 let compile e = 
     let (defs, c) = comp [] e in 
-    let result = c          (* body of program *) 
+    let result = optimise c          (* body of program *) 
                  @ [HALT]   (* stop the interpreter *) 
                  @ defs in  (* the function definitions *) 
     let _ = if Option.verbose 
@@ -715,5 +723,3 @@ let compile e =
     in result 
 
 let interpret e = run (compile e)
-
-		     
