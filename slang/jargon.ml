@@ -708,7 +708,6 @@ let rec optimise code =
   match code with
   | [] -> []
   | PUSH x :: POP :: tail -> optimise tail
-  | x :: y :: tail -> x :: y :: optimise tail
   | x :: tail -> optimise tail
 
 let compile e = 
