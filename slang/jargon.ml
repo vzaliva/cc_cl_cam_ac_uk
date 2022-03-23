@@ -322,8 +322,28 @@ let perform_unary(op, vm) =
    Result: 
    None = no progress 
    Some(vm') = progress made, resulting in vm'
-*) 
-let invoke_garbage_collection vm  = None 
+*)
+
+let invoke_garbage_collection vm =
+    let clean_heap = Array.make vm.heap_bound (HEAP_INT 0) in
+    let rec cleanup curr_sp curr_hp = 
+        if (curr_sp < 0) then curr_hp
+        else match Array.get vm.stack curr_sp with
+        | STACK_HI hi -> ( match Array.get vm.heap hi with
+             | HEAP_HEADER (len, _) -> begin
+                 Array.blit vm.heap hi clean_heap curr_hp len;  (* Copy heap item *)
+                 Array.set vm.heap hi HEAP_UNIT;  (* Mark as copied *)
+                 Array.set vm.stack curr_sp (STACK_HI curr_hp);  (* Update heap pointer in stack *)
+                 cleanup (curr_sp - 1) (curr_hp + len)
+             end
+             | HEAP_UNIT -> cleanup (curr_sp - 1) curr_hp
+             | _ -> Errors.complain "invoke_garbage_collection : heap[STACK_HI hi] is not a HEAP_HEADER"
+        )
+        | _ -> cleanup (curr_sp - 1) curr_hp  (* Skip item if not pointed to *)
+    in
+    let new_hp = cleanup vm.sp 0 in
+    if vm.hp = new_hp then None
+    else Some {vm with heap = clean_heap; hp = new_hp}
 
 let allocate(n, vm) = 
     let hp1 = vm.hp in 
