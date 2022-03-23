@@ -324,27 +324,26 @@ let perform_unary(op, vm) =
    Some(vm') = progress made, resulting in vm'
 *)
 
-let invoke_garbage_collection vm = 
-    let clean_heap = Array.make vm.heap_bound HEAP_UNIT in
-    let new_stack = Array.copy vm.stack in
-    let rec cleanup curr_sp curr_hp =
-        if (curr_sp <= 0) then max 0 curr_hp
+let invoke_garbage_collection vm =
+    let clean_heap = Array.make vm.heap_bound (HEAP_INT 0) in
+    let rec cleanup curr_sp curr_hp = 
+        if (curr_sp < 0) then curr_hp
         else match Array.get vm.stack curr_sp with
         | STACK_HI hi -> ( match Array.get vm.heap hi with
-            | HEAP_HEADER (len, _) -> begin
-                let new_hp = curr_hp + len + 1 in
-                assert (new_hp <= vm.hp);
-                Array.blit vm.heap (hi - len) clean_heap (curr_hp + 1) (len + 1);  (* Copy item into new heap *)
-                Array.set new_stack curr_sp (STACK_HI new_hp);  (* Update heap pointer in stack *)
-                cleanup (curr_sp - 1) new_hp
-            end
-            | _ -> Errors.complain "invoke_garbage_collection : heap[hi] is not a HEAP_HEADER"
+             | HEAP_HEADER (len, _) -> begin
+                 Array.blit vm.heap hi clean_heap curr_hp len;  (* Copy heap item *)
+                 Array.set vm.heap hi HEAP_UNIT;  (* Mark as copied *)
+                 Array.set vm.stack curr_sp (STACK_HI curr_hp);  (* Update heap pointer in stack *)
+                 cleanup (curr_sp - 1) (curr_hp + len)
+             end
+             | HEAP_UNIT -> cleanup (curr_sp - 1) curr_hp
+             | _ -> Errors.complain "invoke_garbage_collection : heap[STACK_HI hi] is not a HEAP_HEADER"
         )
-        | _ -> cleanup (curr_sp - 1) new_hp
+        | _ -> cleanup (curr_sp - 1) curr_hp  (* Skip item if not pointed to *)
     in
-    let new_hp = cleanup vm.hp (-1) in
-    if vm.hp = 0 || new_hp = vm.hp then None
-    else Some {vm with heap = clean_heap; hp = new_hp; stack = new_stack}
+    let new_hp = cleanup vm.sp 0 in
+    if vm.hp = new_hp then None
+    else Some {vm with heap = clean_heap; hp = new_hp}
 
 let allocate(n, vm) = 
     let hp1 = vm.hp in 
