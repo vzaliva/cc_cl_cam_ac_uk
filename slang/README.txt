@@ -49,6 +49,7 @@ Options are:
   -stackmax set max stack size (default = 1000)
   -heapmax set max heap size (default = 1000)
   -t run all test/*.slang with each selected interpreter, report unexpected outputs (silent otherwise)
+  -ie use a simple inline expansion
   -help  Display this list of options
   --help  Display this list of options
 
