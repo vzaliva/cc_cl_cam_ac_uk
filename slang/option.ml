@@ -22,6 +22,7 @@ let show_compiled  = ref false
 let set_infile f   = infile := f
 let stack_max      = ref 1000
 let heap_max       = ref 1000
+let simple_inline_expansion = ref false
 
 let option_spec = [
      ("-V",    Arg.Set verbose_front, "verbose front end");
@@ -37,7 +38,8 @@ let option_spec = [
      ("-all",  Arg.Unit use_all,      "all interpreters");
      ("-stackmax",  Arg.Set_int stack_max, "set max stack size (default = 1000)");
      ("-heapmax",  Arg.Set_int heap_max, "set max heap size (default = 1000)");
-     ("-t",    Arg.Set run_tests,     "run all test/*.slang with each selected interpreter, report unexpected outputs (silent otherwise)")
+     ("-t",    Arg.Set run_tests,     "run all test/*.slang with each selected interpreter, report unexpected outputs (silent otherwise)");
+     ("-ie", Arg.Set simple_inline_expansion, "use a simple inline expansion")
     ]
 let usage_msg = "Usage: slang.byte [options] [<file>]\nOptions are:"
 
@@ -60,3 +62,4 @@ let use_i4x86     = !use_i4x86
 let show_compiled = !show_compiled
 let stack_max     = !stack_max
 let heap_max      = !heap_max
+let simple_inline_expansion = !simple_inline_expansion

@@ -14,3 +14,4 @@ val use_i4x86: bool
 val show_compiled: bool
 val stack_max: int
 val heap_max: int
+val simple_inline_expansion: bool
